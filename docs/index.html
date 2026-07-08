@@ -55,6 +55,28 @@
     font-size: 15px;
   }
 
+  .site-nav {
+    display: flex;
+    gap: 16px;
+    margin: 0 0 12px;
+  }
+
+  .site-nav a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .site-nav a.active {
+    color: var(--accent);
+  }
+
+  .site-nav a:hover,
+  .site-nav a:focus-visible {
+    color: var(--text-primary);
+  }
+
   .last-updated {
     margin: 0;
     color: var(--text-muted);
@@ -336,6 +358,10 @@
   <header class="site-header">
     <h1>DistressIQ</h1>
     <p class="subtitle">AI-Powered ASX Financial Distress Screener</p>
+    <nav class="site-nav">
+      <a href="index.html" class="active">Results</a>
+      <a href="methodology.html">Methodology</a>
+    </nav>
     <p class="last-updated" id="last-updated">Loading…</p>
   </header>
 

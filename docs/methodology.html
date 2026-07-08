@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Methodology — DistressIQ</title>
+<style>
+  :root {
+    --page-plane:     #f9f9f7;
+    --surface:        #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --accent:         #2a78d6;
+    --good-rgb:       12,163,12;
+    --warning-rgb:    250,178,25;
+    --critical-rgb:   208,59,59;
+    --good:           rgb(var(--good-rgb));
+    --warning:        rgb(var(--warning-rgb));
+    --critical:       rgb(var(--critical-rgb));
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 24px 24px;
+  }
+
+  .site-header {
+    margin-bottom: 28px;
+  }
+
+  .site-header h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+    font-size: 15px;
+  }
+
+  .site-nav {
+    display: flex;
+    gap: 16px;
+    margin: 0;
+  }
+
+  .site-nav a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .site-nav a.active {
+    color: var(--accent);
+  }
+
+  .site-nav a:hover,
+  .site-nav a:focus-visible {
+    color: var(--text-primary);
+  }
+
+  .content-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 32px 32px;
+  }
+
+  section + section {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--gridline);
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 28px 0 12px;
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 20px 0 6px;
+    color: var(--text-secondary);
+  }
+
+  p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    max-width: 68ch;
+  }
+
+  ul {
+    margin: 0 0 12px;
+    padding-left: 20px;
+  }
+
+  li {
+    font-size: 14px;
+    margin-bottom: 8px;
+    max-width: 64ch;
+  }
+
+  .zone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .zone-good     { background: rgba(var(--good-rgb), 0.13); }
+  .zone-good .badge-dot     { background: var(--good); }
+
+  .zone-warning  { background: rgba(var(--warning-rgb), 0.16); }
+  .zone-warning .badge-dot  { background: var(--warning); }
+
+  .zone-critical { background: rgba(var(--critical-rgb), 0.13); }
+  .zone-critical .badge-dot { background: var(--critical); }
+
+  footer.disclaimer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gridline);
+    color: var(--text-secondary);
+    font-size: 13px;
+    max-width: 80ch;
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 24px 16px 16px; }
+    .content-card { padding: 4px 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="site-header">
+    <h1>DistressIQ</h1>
+    <p class="subtitle">Methodology</p>
+    <nav class="site-nav">
+      <a href="index.html">Results</a>
+      <a href="methodology.html" class="active">Methodology</a>
+    </nav>
+  </header>
+
+  <main class="content-card">
+    <section>
+      <h2>The financial ratios</h2>
+      <p>Each company's most recent quarterly (or half-yearly) balance sheet and income
+      statement is used to compute four standard credit/liquidity ratios:</p>
+      <h3>Current Ratio</h3>
+      <p>Current assets divided by current liabilities. Answers: can this company
+      cover what it owes in the next 12 months with what it can turn into cash in the
+      next 12 months? Below 1.0x means current liabilities exceed current assets — a
+      potential short-term liquidity squeeze, though common and often unremarkable
+      for retailers and other businesses with fast inventory turnover.</p>
+      <h3>Debt-to-Equity</h3>
+      <p>Total debt divided by shareholder equity. A measure of leverage — how much
+      of the company is financed by borrowing versus its own capital. Higher values
+      mean more financial risk if earnings decline, since debt obligations don't
+      shrink when revenue does.</p>
+      <h3>Net Debt / EBITDA</h3>
+      <p>Total debt minus cash, divided by EBITDA (earnings before interest, tax,
+      depreciation and amortisation). Roughly: how many years of current earnings
+      would it take to pay off all debt, net of cash on hand. Above 3–4x is
+      generally considered elevated leverage; above 6x is a level that would concern
+      most credit analysts.</p>
+      <h3>Interest Coverage</h3>
+      <p>EBIT (earnings before interest and tax) divided by interest expense. Answers:
+      how comfortably can current earnings cover the interest bill alone (before even
+      touching principal)? Below 2x is thin — a meaningful earnings decline could
+      leave the company unable to service its debt from operating earnings.</p>
+    </section>
+
+    <section>
+      <h2>The Altman Z-Score</h2>
+      <p>The Altman Z-Score is a composite distress score first published in 1968,
+      combining five weighted balance-sheet and income-statement ratios (working
+      capital, retained earnings, EBIT, market value of equity, and revenue, each
+      scaled by total assets or liabilities) into a single number:</p>
+      <ul>
+        <li><span class="zone-badge zone-good"><span class="badge-dot"></span>Safe</span> — Z-Score above 2.99</li>
+        <li><span class="zone-badge zone-warning"><span class="badge-dot"></span>Grey</span> — Z-Score between 1.81 and 2.99, an ambiguous zone</li>
+        <li><span class="zone-badge zone-critical"><span class="badge-dot"></span>Distress</span> — Z-Score below 1.81</li>
+      </ul>
+      <p><strong>Why it's marked N/A for Financials and Real Estate.</strong> The
+      original formula was built and calibrated on public industrial and
+      manufacturing companies. Banks, insurers, exchanges, and REITs have
+      fundamentally different balance sheet structures — for example, a bank's
+      "debt" is largely customer deposits, not leverage in the distress sense the
+      formula assumes. Applying the formula to these sectors routinely produces
+      scores that look alarming but reflect the business model, not financial
+      distress. DistressIQ suppresses the zone label for Financials and Real
+      Estate constituents rather than show a misleading reading — the underlying
+      raw score is still available in each company's detail panel, and the AI
+      risk rating (not the Z-Score) is the headline signal for those companies.</p>
+    </section>
+
+    <section>
+      <h2>How the AI risk assessment works</h2>
+      <p>For each company, an AI model (Claude) is given the current ratios above
+      plus up to three years of quarterly history — revenue, EBIT, total debt,
+      cash, and net debt — and asked to write a structured assessment rather than
+      just restate the numbers. The model returns five fields:</p>
+      <ul>
+        <li><strong>Risk Rating</strong> — Low, Moderate, Elevated, or High</li>
+        <li><strong>Confidence</strong> — Low, Medium, or High, with a stated reason</li>
+        <li><strong>Primary Driver</strong> — the specific mechanism behind the rating
+        (a solvency problem, an earnings shock, a liquidity timing issue, a
+        governance flag, or a cost blowout), not a generic restatement of the ratios</li>
+        <li><strong>Trend</strong> — the direction of travel across the historical
+        periods shown, and whether deterioration (if any) looks acute or gradual</li>
+        <li><strong>Watch Trigger</strong> — a specific, concrete event or threshold
+        that would change the assessment</li>
+      </ul>
+      <p>The model is explicitly instructed to be decisive and specific rather than
+      hedge — but see the data-quality safeguard below for the one case where it's
+      instructed to do the opposite.</p>
+    </section>
+
+    <section>
+      <h2>Data-quality safeguards</h2>
+      <p>Fundamentals data aggregated from public filings is not always clean.
+      DistressIQ found a real example: one company's reported total debt appeared
+      to jump by roughly 55% in a single period with no corresponding event, which
+      turned out to be a lease-liability figure counted twice in the underlying
+      data provider's field for that one period — not an actual financial event.</p>
+      <p>The AI prompt now includes an explicit check: before writing its
+      assessment, the model scans the historical data for any single-period move
+      greater than 50% in a major line item that isn't explained elsewhere in the
+      data. When it finds one, it is instructed to name the possibility of a
+      data-quality or reporting artifact directly, cap its Confidence at Medium,
+      and point its Watch Trigger at confirming the figure — rather than inventing
+      a specific cause like "a major acquisition" to explain a number it can't
+      actually verify. Where this applies, it's visible directly in that company's
+      Confidence reasoning and flagged in the results table.</p>
+    </section>
+
+    <section>
+      <h2>Data source and update cadence</h2>
+      <p>Fundamentals (balance sheet, income statement, and company reference data)
+      are sourced from <a href="https://eodhd.com" target="_blank" rel="noopener noreferrer">EODHD</a>.
+      The full pipeline — fetching fundamentals, computing ratios, and generating
+      each AI write-up — runs automatically once a week and republishes this site
+      with the latest results. Individual companies may report quarterly or
+      half-yearly depending on their own disclosure schedule, so the "as of"
+      statement date shown in each detail panel can differ company to company even
+      within the same weekly run.</p>
+    </section>
+  </main>
+
+  <footer class="disclaimer">
+    <p>DistressIQ is an educational and portfolio project. All risk ratings, confidence
+    levels, and written analysis are generated by an AI model from public financial
+    data and are not reviewed by a human analyst. Nothing on this page is financial
+    advice, a research report, or a recommendation to buy, sell, or hold any security.
+    Ratios and scores (including the Altman Z-Score) may be unreliable for certain
+    sectors — see each company's detail panel for context. Do your own research and
+    consult a licensed financial adviser before making investment decisions.</p>
+  </footer>
+</div>
+
+</body>
+</html>
