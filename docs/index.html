@@ -266,6 +266,24 @@
     max-width: 70ch;
   }
 
+  .news-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .news-links a {
+    color: var(--accent);
+    font-size: 14px;
+    text-decoration: none;
+    width: fit-content;
+  }
+
+  .news-links a:hover,
+  .news-links a:focus-visible {
+    text-decoration: underline;
+  }
+
   .state-message {
     padding: 40px 16px;
     text-align: center;
@@ -282,9 +300,33 @@
     max-width: 80ch;
   }
 
+  .mobile-overview {
+    display: none;
+  }
+
   @media (max-width: 640px) {
     .page { padding: 24px 16px 16px; }
     .detail-panel { padding: 18px 16px 22px 24px; }
+
+    /* Collapse to the essential columns — Company (1st) and Risk Rating
+       (3rd). Sector, Confidence, and Z-Score Zone move into the detail
+       panel instead of forcing horizontal scroll. */
+    table { min-width: 0; width: 100%; }
+    thead th:nth-child(2), tbody td:nth-child(2),
+    thead th:nth-child(4), tbody td:nth-child(4),
+    thead th:nth-child(5), tbody td:nth-child(5) {
+      display: none;
+    }
+
+    .company-cell { flex-wrap: wrap; }
+    .company-cell span { overflow-wrap: anywhere; }
+
+    /* True vertical stack on a phone rather than auto-fit's 2-column guess. */
+    .ratio-grid { grid-template-columns: 1fr; }
+
+    .mobile-overview {
+      display: block;
+    }
   }
 </style>
 </head>
@@ -857,6 +899,66 @@
     container.appendChild(field);
   }
 
+  function buildMobileOverviewSection(company) {
+    // Hidden on desktop (the table already shows these columns) — shown
+    // only under the narrow-screen media query, where Sector, Confidence,
+    // and Z-Score Zone are dropped from the table itself.
+    var section = document.createElement("div");
+    section.className = "detail-section mobile-overview";
+
+    var title = document.createElement("h3");
+    title.textContent = "Overview";
+    section.appendChild(title);
+
+    var grid = document.createElement("dl");
+    grid.className = "ratio-grid";
+    addRatioItem(grid, "Sector", formatText(company.sector));
+    addRatioItem(grid, "Confidence", formatText(company.confidence_level));
+    addRatioItem(grid, "Z-Score Zone", formatText(company.z_score_zone));
+    section.appendChild(grid);
+
+    return section;
+  }
+
+  function formatAsxAnnouncementsUrl(ticker) {
+    return "https://www.asx.com.au/markets/company/" + formatTickerCode(ticker);
+  }
+
+  function formatGoogleNewsUrl(name) {
+    return "https://news.google.com/search?q=" + encodeURIComponent(name);
+  }
+
+  function buildNewsSection(company) {
+    var section = document.createElement("div");
+    section.className = "detail-section";
+
+    var title = document.createElement("h3");
+    title.textContent = "News & Announcements";
+    section.appendChild(title);
+
+    var list = document.createElement("div");
+    list.className = "news-links";
+
+    // ASX announcements first — for a distress tool, downgrades and
+    // trading halts show up there before general news coverage does.
+    var asxLink = document.createElement("a");
+    asxLink.href = formatAsxAnnouncementsUrl(company.ticker);
+    asxLink.target = "_blank";
+    asxLink.rel = "noopener noreferrer";
+    asxLink.textContent = "ASX Announcements ↗";
+    list.appendChild(asxLink);
+
+    var newsLink = document.createElement("a");
+    newsLink.href = formatGoogleNewsUrl(company.name || company.ticker);
+    newsLink.target = "_blank";
+    newsLink.rel = "noopener noreferrer";
+    newsLink.textContent = "Google News Search ↗";
+    list.appendChild(newsLink);
+
+    section.appendChild(list);
+    return section;
+  }
+
   function buildDetailRow(company) {
     var tr = document.createElement("tr");
     tr.className = "detail-row";
@@ -866,6 +968,8 @@
 
     var wrapper = document.createElement("div");
     wrapper.className = "detail-panel";
+
+    wrapper.appendChild(buildMobileOverviewSection(company));
 
     var ratios = company.ratios || {};
 
@@ -907,6 +1011,8 @@
     addAiField(aiSection, "Trend", formatText(company.trend));
     addAiField(aiSection, "Watch Trigger", formatText(company.watch_trigger));
     wrapper.appendChild(aiSection);
+
+    wrapper.appendChild(buildNewsSection(company));
 
     td.appendChild(wrapper);
     tr.appendChild(td);
