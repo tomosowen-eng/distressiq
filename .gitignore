@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Backup / editor artifacts
+*.bak
+*~
+*.swp
+
+# Local run logs — not committed, stay on the machine that ran the job
+pipeline_log.txt
+launchd_run.log
+
+# Earlier pipeline-stage output artifacts — only results.json is committed
+# for the front end to consume
+ai_risk_results.json
+ratio_results.json
