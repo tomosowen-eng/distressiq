@@ -245,6 +245,12 @@ HISTORICAL FUNDAMENTALS (most recent first, figures in millions, local currency)
 
 NOTE ON THE ALTMAN Z-SCORE: this formula was built for industrial/manufacturing firms and does not fit banks, financial exchanges, or other firms with unusual balance sheet structures well. If this company is in such a sector, factor that into your confidence level rather than taking the Z-score at face value.
 
+DATA QUALITY CHECK: Before writing your assessment, scan the historical fundamentals table above for any single-period move greater than 50% in a line item (total debt, cash, net debt, revenue, or EBIT) that has no clear explanation elsewhere in the data provided (e.g. no offsetting change in a related line, nothing in the company context that would account for it). If you find one:
+- Do not invent a specific cause (e.g. "likely a major acquisition" or "likely a refinancing") unless the data actually supports it — an unexplained jump is exactly that, unexplained.
+- Explicitly name the possibility that this is a data-quality or reporting artifact (a reclassification, restatement, or extraction error) rather than assuming it reflects a real financial event.
+- Cap CONFIDENCE at Medium, and state the unexplained move itself as the reason for the lower confidence.
+- Make WATCH TRIGGER about confirming or clarifying that specific figure in the next disclosure, not about a threshold that assumes the figure is already accurate.
+
 Write your assessment in EXACTLY this structure, with these exact headers:
 
 RISK RATING: [Low / Moderate / Elevated / High]

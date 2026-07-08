@@ -65,6 +65,7 @@ Z_SCORE_NOT_APPLICABLE_SECTORS = {"Financials", "Real Estate"}
 Z_SCORE_NOT_APPLICABLE_LABEL = "N/A — Z-score not applicable to financials"
 
 RESULTS_FILE = "results.json"
+DOCS_RESULTS_FILE = "docs/results.json"  # served by the GitHub Pages front end
 LOG_FILE = "pipeline_log.txt"
 
 
@@ -273,6 +274,12 @@ HISTORICAL FUNDAMENTALS (most recent first, figures in millions, local currency)
 
 NOTE ON THE ALTMAN Z-SCORE: this formula was built for industrial/manufacturing firms and does not fit banks, financial exchanges, or other firms with unusual balance sheet structures well. If this company is in such a sector, factor that into your confidence level rather than taking the Z-score at face value.
 
+DATA QUALITY CHECK: Before writing your assessment, scan the historical fundamentals table above for any single-period move greater than 50% in a line item (total debt, cash, net debt, revenue, or EBIT) that has no clear explanation elsewhere in the data provided (e.g. no offsetting change in a related line, nothing in the company context that would account for it). If you find one:
+- Do not invent a specific cause (e.g. "likely a major acquisition" or "likely a refinancing") unless the data actually supports it — an unexplained jump is exactly that, unexplained.
+- Explicitly name the possibility that this is a data-quality or reporting artifact (a reclassification, restatement, or extraction error) rather than assuming it reflects a real financial event.
+- Cap CONFIDENCE at Medium, and state the unexplained move itself as the reason for the lower confidence.
+- Make WATCH TRIGGER about confirming or clarifying that specific figure in the next disclosure, not about a threshold that assumes the figure is already accurate.
+
 Write your assessment in EXACTLY this structure, with these exact headers:
 
 RISK RATING: [Low / Moderate / Elevated / High]
@@ -365,6 +372,12 @@ def process_company(company):
     ticker = company["ticker"]
     data = fetch_fundamentals(ticker)
 
+    # asx200_watchlist.py names come from the STW holdings file and are
+    # truncated (e.g. "Cmnwlth Bk Of Aust") — EODHD's fundamentals response
+    # carries the proper company name at no extra API cost since we already
+    # fetch this response for the ratios below.
+    display_name = data.get("General", {}).get("Name") or company["name"]
+
     ratios = calculate_ratios(data, ticker)
     if ratios is None:
         raise MissingDataError(f"missing balance sheet/income statement data for {ticker}")
@@ -386,7 +399,7 @@ def process_company(company):
 
     return {
         "ticker": ticker,
-        "name": company["name"],
+        "name": display_name,
         "sector": sector,
         "index_weight_pct": company.get("weight_pct"),
         "statement_date": ratios.get("statement_date"),
@@ -480,10 +493,14 @@ def main():
     with open(RESULTS_FILE, "w") as f:
         json.dump(output, f, indent=2)
 
+    os.makedirs(os.path.dirname(DOCS_RESULTS_FILE), exist_ok=True)
+    with open(DOCS_RESULTS_FILE, "w") as f:
+        json.dump(output, f, indent=2)
+
     log(
         log_lines,
         f"Pipeline run finished — {len(results)} succeeded, {len(failures)} failed, "
-        f"{len(missing_data)} missing data. Results written to {RESULTS_FILE}",
+        f"{len(missing_data)} missing data. Results written to {RESULTS_FILE} and {DOCS_RESULTS_FILE}",
     )
 
     with open(LOG_FILE, "a") as f:

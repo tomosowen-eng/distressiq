@@ -1,4 +1,358 @@
-{
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DistressIQ — AI-Powered ASX Financial Distress Screener</title>
+<style>
+  :root {
+    --page-plane:     #f9f9f7;
+    --surface:        #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --accent:         #2a78d6;
+    --good-rgb:       12,163,12;
+    --warning-rgb:    250,178,25;
+    --critical-rgb:   208,59,59;
+    --good:           rgb(var(--good-rgb));
+    --warning:        rgb(var(--warning-rgb));
+    --critical:       rgb(var(--critical-rgb));
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 24px;
+  }
+
+  .site-header {
+    margin-bottom: 28px;
+  }
+
+  .site-header h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+    font-size: 15px;
+  }
+
+  .last-updated {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--gridline);
+    text-align: left;
+    padding: 0;
+    z-index: 1;
+  }
+
+  thead button {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+
+  thead button:hover,
+  thead button:focus-visible {
+    color: var(--text-primary);
+  }
+
+  thead button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .sort-arrow {
+    font-size: 10px;
+    color: var(--accent);
+    min-width: 10px;
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--gridline);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  tr.company-row {
+    cursor: pointer;
+  }
+
+  tr.company-row:hover {
+    background: rgba(11,11,11,0.03);
+  }
+
+  tr.company-row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  tr.company-row:last-of-type td,
+  tr.detail-row:last-of-type td {
+    border-bottom: none;
+  }
+
+  .company-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .ticker-code {
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chevron {
+    display: inline-block;
+    width: 10px;
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  .risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .risk-good     { background: rgba(var(--good-rgb), 0.13); }
+  .risk-good .badge-dot     { background: var(--good); }
+
+  .risk-warning  { background: rgba(var(--warning-rgb), 0.16); }
+  .risk-warning .badge-dot  { background: var(--warning); }
+
+  .risk-critical { background: rgba(var(--critical-rgb), 0.13); }
+  .risk-critical .badge-dot { background: var(--critical); }
+
+  .risk-unknown  { background: rgba(11,11,11,0.06); }
+  .risk-unknown .badge-dot  { background: var(--text-muted); }
+
+  .muted-cell {
+    color: var(--text-secondary);
+  }
+
+  tr.detail-row td {
+    padding: 0;
+    background: var(--page-plane);
+  }
+
+  .detail-panel {
+    padding: 20px 24px 26px 44px;
+  }
+
+  .detail-section + .detail-section {
+    margin-top: 22px;
+  }
+
+  .detail-section h3 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .ratio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px 24px;
+    margin: 0;
+  }
+
+  .ratio-item {
+    min-width: 0;
+  }
+
+  .ratio-grid dt {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+
+  .ratio-grid dd {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ai-field {
+    margin-bottom: 16px;
+  }
+
+  .ai-field:last-child {
+    margin-bottom: 0;
+  }
+
+  .ai-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .ai-text {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-primary);
+    max-width: 70ch;
+  }
+
+  .state-message {
+    padding: 40px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  footer.disclaimer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gridline);
+    color: var(--text-secondary);
+    font-size: 13px;
+    max-width: 80ch;
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 24px 16px 16px; }
+    .detail-panel { padding: 18px 16px 22px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="site-header">
+    <h1>DistressIQ</h1>
+    <p class="subtitle">AI-Powered ASX Financial Distress Screener</p>
+    <p class="last-updated" id="last-updated">Loading…</p>
+  </header>
+
+  <main>
+    <div class="table-card">
+      <table id="results-table">
+        <thead>
+          <tr>
+            <th aria-sort="none">
+              <button type="button" data-key="name" data-type="string">
+                <span class="label-text">Company</span>
+                <span class="sort-arrow"></span>
+              </button>
+            </th>
+            <th aria-sort="none">
+              <button type="button" data-key="sector" data-type="string">
+                <span class="label-text">Sector</span>
+                <span class="sort-arrow"></span>
+              </button>
+            </th>
+            <th aria-sort="descending">
+              <button type="button" data-key="risk_rating" data-type="rank" data-rankmap="risk">
+                <span class="label-text">Risk Rating</span>
+                <span class="sort-arrow">▼</span>
+              </button>
+            </th>
+            <th aria-sort="none">
+              <button type="button" data-key="confidence_level" data-type="rank" data-rankmap="confidence">
+                <span class="label-text">Confidence</span>
+                <span class="sort-arrow"></span>
+              </button>
+            </th>
+            <th aria-sort="none">
+              <button type="button" data-key="z_score_zone" data-type="rank" data-rankmap="zscore">
+                <span class="label-text">Z-Score Zone</span>
+                <span class="sort-arrow"></span>
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody">
+          <tr><td colspan="5" class="state-message">Loading results…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="disclaimer">
+    <p>DistressIQ is an educational and portfolio project. All risk ratings, confidence
+    levels, and written analysis are generated by an AI model from public financial
+    data and are not reviewed by a human analyst. Nothing on this page is financial
+    advice, a research report, or a recommendation to buy, sell, or hold any security.
+    Ratios and scores (including the Altman Z-Score) may be unreliable for certain
+    sectors — see each company's detail panel for context. Do your own research and
+    consult a licensed financial adviser before making investment decisions.</p>
+  </footer>
+</div>
+
+<script id="embedded-results" type="application/json">{
   "run_timestamp": "2026-07-07T14:48:37Z",
   "run_completed_at": "2026-07-07T14:51:42Z",
   "subset": "test_subset_15",
@@ -354,4 +708,395 @@
       "raw_ai_analysis": "RISK RATING: Low\n\nCONFIDENCE: Medium \u2014 QBE is a large insurance operation where traditional leverage metrics apply differently, and the December 2024 EBIT anomaly (-19,199.0) distorts trend analysis but appears to be a one-off reserve or impairment event rather than recurring operational distress.\n\nPRIMARY DRIVER: The December 2024 massive EBIT loss is the critical data point, but subsequent performance has recovered with positive EBIT of 1,487.8 in June 2025. This looks like a discrete reserve charge or catastrophe loss provision rather than franchise deterioration. Debt has increased 42% since December 2024 to 4,105.8, but net debt/EBITDA of 0.71x remains extremely manageable for an insurer.\n\nTREND: Debt is rising (from 2,895 to 4,105 in twelve months) while cash declined from 2,124 to 1,870, pushing net debt up 44% to 2,235.5. However, revenue growth is steady and post-anomaly profitability has normalized.\n\nWATCH TRIGGER: Next half-year EBIT print falling below 1,000 or net debt exceeding 3,000 would signal the December 2024 event has ongoing operational consequences."
     }
   ]
-}
+}</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var RANK_MAPS = {
+    risk: { "Low": 1, "Moderate": 2, "Elevated": 3, "High": 4 },
+    confidence: { "Low": 1, "Medium": 2, "High": 3 },
+    zscore: { "Safe": 1, "Grey": 2, "Distress": 3 }
+  };
+
+  var RISK_STATUS_CLASS = {
+    "Low": "risk-good",
+    "Moderate": "risk-warning",
+    "Elevated": "risk-critical",
+    "High": "risk-critical"
+  };
+
+  var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  var currentSort = { key: "risk_rating", type: "rank", rankmap: "risk", direction: "desc" };
+  var expandedTickers = new Set();
+  var companies = [];
+
+  var tbody = document.getElementById("results-tbody");
+  var lastUpdatedEl = document.getElementById("last-updated");
+
+  function formatDateOnly(dateStr) {
+    if (!dateStr || typeof dateStr !== "string") return "—";
+    var parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    var year = parts[0], month = parseInt(parts[1], 10), day = parseInt(parts[2], 10);
+    if (!month || !day || month < 1 || month > 12) return dateStr;
+    return day + " " + MONTHS[month - 1] + " " + year;
+  }
+
+  function formatTimestamp(iso) {
+    if (!iso) return "unknown";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    var day = d.getUTCDate();
+    var month = MONTHS[d.getUTCMonth()];
+    var year = d.getUTCFullYear();
+    var hh = String(d.getUTCHours()).padStart(2, "0");
+    var mm = String(d.getUTCMinutes()).padStart(2, "0");
+    return day + " " + month + " " + year + ", " + hh + ":" + mm + " UTC";
+  }
+
+  function formatRatio(v) {
+    if (v === null || v === undefined) return "—";
+    return v + "x";
+  }
+
+  function formatTickerCode(ticker) {
+    return ticker.replace(/\.AU$/, "");
+  }
+
+  function formatPlain(v) {
+    if (v === null || v === undefined) return "—";
+    return String(v);
+  }
+
+  function formatPercent(v) {
+    if (v === null || v === undefined) return "—";
+    return v.toFixed(2) + "%";
+  }
+
+  function formatText(v) {
+    if (!v) return "—";
+    return v;
+  }
+
+  function compareValues(a, b, sort) {
+    var av = a[sort.key];
+    var bv = b[sort.key];
+    var aMissing = (av === null || av === undefined || av === "");
+    var bMissing = (bv === null || bv === undefined || bv === "");
+    if (aMissing && bMissing) return 0;
+    if (aMissing) return 1;
+    if (bMissing) return -1;
+
+    if (sort.type === "rank") {
+      var map = RANK_MAPS[sort.rankmap] || {};
+      var ar = map[av];
+      var br = map[bv];
+      var aUnknown = (ar === undefined);
+      var bUnknown = (br === undefined);
+      if (aUnknown && bUnknown) return 0;
+      if (aUnknown) return 1;
+      if (bUnknown) return -1;
+      return sort.direction === "asc" ? (ar - br) : (br - ar);
+    }
+
+    var as = String(av).toLowerCase();
+    var bs = String(bv).toLowerCase();
+    var cmp = as < bs ? -1 : (as > bs ? 1 : 0);
+    return sort.direction === "asc" ? cmp : -cmp;
+  }
+
+  function buildRiskBadge(rating) {
+    var span = document.createElement("span");
+    var statusClass = RISK_STATUS_CLASS[rating] || "risk-unknown";
+    span.className = "risk-badge " + statusClass;
+
+    var dot = document.createElement("span");
+    dot.className = "badge-dot";
+    dot.setAttribute("aria-hidden", "true");
+    span.appendChild(dot);
+
+    var label = document.createElement("span");
+    label.textContent = rating || "Unknown";
+    span.appendChild(label);
+
+    return span;
+  }
+
+  function addRatioItem(dl, label, value) {
+    // Wrap each dt/dd pair in its own <div> so the grid lays out whole
+    // pairs as one item — dt and dd as separate direct grid children would
+    // flow independently and could split across rows.
+    var item = document.createElement("div");
+    item.className = "ratio-item";
+    var dt = document.createElement("dt");
+    dt.textContent = label;
+    var dd = document.createElement("dd");
+    dd.textContent = value;
+    item.appendChild(dt);
+    item.appendChild(dd);
+    dl.appendChild(item);
+  }
+
+  function addAiField(container, label, text) {
+    var field = document.createElement("div");
+    field.className = "ai-field";
+
+    var labelEl = document.createElement("span");
+    labelEl.className = "ai-label";
+    labelEl.textContent = label;
+    field.appendChild(labelEl);
+
+    var textEl = document.createElement("p");
+    textEl.className = "ai-text";
+    textEl.textContent = text;
+    field.appendChild(textEl);
+
+    container.appendChild(field);
+  }
+
+  function buildDetailRow(company) {
+    var tr = document.createElement("tr");
+    tr.className = "detail-row";
+
+    var td = document.createElement("td");
+    td.colSpan = 5;
+
+    var wrapper = document.createElement("div");
+    wrapper.className = "detail-panel";
+
+    var ratios = company.ratios || {};
+
+    var ratiosSection = document.createElement("div");
+    ratiosSection.className = "detail-section";
+    var ratiosTitle = document.createElement("h3");
+    ratiosTitle.textContent = "Financial Ratios";
+    ratiosSection.appendChild(ratiosTitle);
+
+    var grid = document.createElement("dl");
+    grid.className = "ratio-grid";
+    addRatioItem(grid, "Current Ratio", formatRatio(ratios.current_ratio));
+    addRatioItem(grid, "Debt-to-Equity", formatRatio(ratios.debt_to_equity));
+    addRatioItem(grid, "Net Debt / EBITDA", formatRatio(ratios.net_debt_to_ebitda));
+    addRatioItem(grid, "Interest Coverage", formatRatio(ratios.interest_coverage));
+
+    var zScoreLabel = formatPlain(company.altman_z_score);
+    if (company.z_score_zone) {
+      zScoreLabel += " (" + company.z_score_zone + ")";
+    }
+    addRatioItem(grid, "Altman Z-Score", zScoreLabel);
+    addRatioItem(grid, "Statement Date", formatDateOnly(company.statement_date));
+    addRatioItem(grid, "ASX 200 Index Weight", formatPercent(company.index_weight_pct));
+    ratiosSection.appendChild(grid);
+    wrapper.appendChild(ratiosSection);
+
+    var aiSection = document.createElement("div");
+    aiSection.className = "detail-section";
+    var aiTitle = document.createElement("h3");
+    aiTitle.textContent = "AI Risk Assessment";
+    aiSection.appendChild(aiTitle);
+
+    var confidenceText = formatText(company.confidence_level);
+    if (company.confidence_reason) {
+      confidenceText += " — " + company.confidence_reason;
+    }
+    addAiField(aiSection, "Confidence", confidenceText);
+    addAiField(aiSection, "Primary Driver", formatText(company.primary_driver));
+    addAiField(aiSection, "Trend", formatText(company.trend));
+    addAiField(aiSection, "Watch Trigger", formatText(company.watch_trigger));
+    wrapper.appendChild(aiSection);
+
+    td.appendChild(wrapper);
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function toggleExpanded(ticker) {
+    if (expandedTickers.has(ticker)) {
+      expandedTickers.delete(ticker);
+    } else {
+      expandedTickers.add(ticker);
+    }
+    render();
+  }
+
+  function buildCompanyRow(company) {
+    var tr = document.createElement("tr");
+    tr.className = "company-row";
+    tr.tabIndex = 0;
+    tr.setAttribute("role", "button");
+    var isExpanded = expandedTickers.has(company.ticker);
+    tr.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+
+    var nameTd = document.createElement("td");
+    var nameCell = document.createElement("span");
+    nameCell.className = "company-cell";
+    var chevron = document.createElement("span");
+    chevron.className = "chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.textContent = isExpanded ? "▾" : "▸";
+    nameCell.appendChild(chevron);
+    var nameText = document.createElement("span");
+    nameText.textContent = company.name || company.ticker || "Unknown";
+    nameCell.appendChild(nameText);
+    if (company.ticker) {
+      var tickerCode = document.createElement("span");
+      tickerCode.className = "ticker-code";
+      tickerCode.textContent = formatTickerCode(company.ticker);
+      nameCell.appendChild(tickerCode);
+    }
+    nameTd.appendChild(nameCell);
+    tr.appendChild(nameTd);
+
+    var sectorTd = document.createElement("td");
+    sectorTd.className = "muted-cell";
+    sectorTd.textContent = company.sector || "—";
+    tr.appendChild(sectorTd);
+
+    var riskTd = document.createElement("td");
+    riskTd.appendChild(buildRiskBadge(company.risk_rating));
+    tr.appendChild(riskTd);
+
+    var confTd = document.createElement("td");
+    confTd.className = "muted-cell";
+    confTd.textContent = company.confidence_level || "—";
+    tr.appendChild(confTd);
+
+    var zoneTd = document.createElement("td");
+    zoneTd.className = "muted-cell";
+    zoneTd.textContent = company.z_score_zone || "—";
+    tr.appendChild(zoneTd);
+
+    tr.addEventListener("click", function () { toggleExpanded(company.ticker); });
+    tr.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleExpanded(company.ticker);
+      }
+    });
+
+    return tr;
+  }
+
+  function updateSortIndicators() {
+    var buttons = document.querySelectorAll("#results-table thead button");
+    buttons.forEach(function (btn) {
+      var th = btn.closest("th");
+      var arrow = btn.querySelector(".sort-arrow");
+      if (btn.dataset.key === currentSort.key) {
+        arrow.textContent = currentSort.direction === "asc" ? "▲" : "▼";
+        th.setAttribute("aria-sort", currentSort.direction === "asc" ? "ascending" : "descending");
+      } else {
+        arrow.textContent = "";
+        th.setAttribute("aria-sort", "none");
+      }
+    });
+  }
+
+  function render() {
+    tbody.textContent = "";
+
+    if (!companies.length) {
+      var tr = document.createElement("tr");
+      var td = document.createElement("td");
+      td.colSpan = 5;
+      td.className = "state-message";
+      td.textContent = "No results to display.";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    var sorted = companies.slice().sort(function (a, b) {
+      return compareValues(a, b, currentSort);
+    });
+
+    sorted.forEach(function (company) {
+      var row = buildCompanyRow(company);
+      tbody.appendChild(row);
+      if (expandedTickers.has(company.ticker)) {
+        tbody.appendChild(buildDetailRow(company));
+      }
+    });
+  }
+
+  function attachSortHandlers() {
+    var buttons = document.querySelectorAll("#results-table thead button");
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var key = btn.dataset.key;
+        var type = btn.dataset.type;
+        var rankmap = btn.dataset.rankmap;
+        if (currentSort.key === key) {
+          currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+        } else {
+          currentSort = {
+            key: key,
+            type: type,
+            rankmap: rankmap,
+            direction: type === "rank" ? "desc" : "asc"
+          };
+        }
+        updateSortIndicators();
+        render();
+      });
+    });
+  }
+
+  function showError(message) {
+    tbody.textContent = "";
+    var tr = document.createElement("tr");
+    var td = document.createElement("td");
+    td.colSpan = 5;
+    td.className = "state-message";
+    td.textContent = message;
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    lastUpdatedEl.textContent = "";
+  }
+
+  function init(data) {
+    if (!data || !Array.isArray(data.results)) {
+      showError("Results data is missing or malformed.");
+      return;
+    }
+    companies = data.results;
+    lastUpdatedEl.textContent = "Last updated: " + formatTimestamp(data.run_completed_at || data.run_timestamp);
+    updateSortIndicators();
+    attachSortHandlers();
+    render();
+  }
+
+  function loadEmbeddedFallback() {
+    var el = document.getElementById("embedded-results");
+    if (!el) return null;
+    try {
+      return JSON.parse(el.textContent);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  fetch("results.json", { cache: "no-store" })
+    .then(function (resp) {
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      init(data);
+    })
+    .catch(function () {
+      var fallback = loadEmbeddedFallback();
+      if (fallback) {
+        init(fallback);
+      } else {
+        showError("Unable to load results data.");
+      }
+    });
+})();
+</script>
+
+</body>
+</html>
