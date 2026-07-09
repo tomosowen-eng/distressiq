@@ -164,7 +164,8 @@
   }
 
   .company-cell {
-    display: flex;
+    display: inline-flex;
+    width: 100%;
     align-items: center;
     gap: 8px;
     font-weight: 600;
@@ -374,8 +375,9 @@
       display: none;
     }
 
+    .company-name { font-size: 13px; }
     .company-text { flex: 1 1 auto; min-width: 0; }
-    .company-text span { overflow-wrap: anywhere; }
+    .company-text span { overflow-wrap: break-word; }
 
     /* True vertical stack on a phone rather than auto-fit's 2-column guess. */
     .ratio-grid { grid-template-columns: 1fr; }
@@ -1131,6 +1133,7 @@
     var companyText = document.createElement("span");
     companyText.className = "company-text";
     var nameText = document.createElement("span");
+    nameText.className = "company-name";
     nameText.textContent = company.name || company.ticker || "Unknown";
     companyText.appendChild(nameText);
     if (company.ticker) {
