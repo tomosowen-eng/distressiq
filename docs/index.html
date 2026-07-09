@@ -170,6 +170,13 @@
     font-weight: 600;
   }
 
+  .company-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
   .ticker-code {
     font-weight: 400;
     font-size: 12px;
@@ -179,6 +186,7 @@
 
   .chevron {
     display: inline-block;
+    flex-shrink: 0;
     width: 10px;
     color: var(--text-muted);
     font-size: 11px;
@@ -366,8 +374,8 @@
       display: none;
     }
 
-    .company-cell { flex-wrap: wrap; }
-    .company-cell span { overflow-wrap: anywhere; }
+    .company-text { flex: 1 1 auto; min-width: 0; }
+    .company-text span { overflow-wrap: anywhere; }
 
     /* True vertical stack on a phone rather than auto-fit's 2-column guess. */
     .ratio-grid { grid-template-columns: 1fr; }
@@ -1120,15 +1128,18 @@
     chevron.setAttribute("aria-hidden", "true");
     chevron.textContent = isExpanded ? "▾" : "▸";
     nameCell.appendChild(chevron);
+    var companyText = document.createElement("span");
+    companyText.className = "company-text";
     var nameText = document.createElement("span");
     nameText.textContent = company.name || company.ticker || "Unknown";
-    nameCell.appendChild(nameText);
+    companyText.appendChild(nameText);
     if (company.ticker) {
       var tickerCode = document.createElement("span");
       tickerCode.className = "ticker-code";
       tickerCode.textContent = formatTickerCode(company.ticker);
-      nameCell.appendChild(tickerCode);
+      companyText.appendChild(tickerCode);
     }
+    nameCell.appendChild(companyText);
     nameTd.appendChild(nameCell);
     tr.appendChild(nameTd);
 
