@@ -843,12 +843,13 @@
     if (!iso) return "unknown";
     var d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
-    var day = d.getUTCDate();
-    var month = MONTHS[d.getUTCMonth()];
-    var year = d.getUTCFullYear();
-    var hh = String(d.getUTCHours()).padStart(2, "0");
-    var mm = String(d.getUTCMinutes()).padStart(2, "0");
-    return day + " " + month + " " + year + ", " + hh + ":" + mm + " UTC";
+    var brisbane = new Date(d.getTime() + 10 * 60 * 60 * 1000);
+    var day = brisbane.getUTCDate();
+    var month = MONTHS[brisbane.getUTCMonth()];
+    var year = brisbane.getUTCFullYear();
+    var hh = String(brisbane.getUTCHours()).padStart(2, "0");
+    var mm = String(brisbane.getUTCMinutes()).padStart(2, "0");
+    return day + " " + month + " " + year + ", " + hh + ":" + mm + " AEST";
   }
 
   function formatRatio(v) {
