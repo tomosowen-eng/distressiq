@@ -7,6 +7,8 @@
   "companies_failed": 0,
   "failures": [],
   "missing_data": [],
+  "changes": [],
+  "changes_compared_to": null,
   "results": [
     {
       "ticker": "BHP.AU",

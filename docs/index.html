@@ -90,6 +90,69 @@
     overflow-x: auto;
   }
 
+  .changes-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .changes-strip[hidden] {
+    display: none;
+  }
+
+  .changes-strip-title {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .changes-strip-since {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .changes-strip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .change-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--gridline);
+    border-radius: 8px;
+    background: var(--page-plane);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .change-chip:hover,
+  .change-chip:focus-visible {
+    border-color: var(--accent);
+  }
+
+  .change-chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .change-name {
+    font-weight: 600;
+  }
+
+  .change-arrow {
+    color: var(--text-muted);
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -301,6 +364,13 @@
     padding: 10px 12px;
   }
 
+  .ai-field-change {
+    background: rgba(42, 120, 214, 0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
   .ai-label {
     display: block;
     font-size: 12px;
@@ -394,6 +464,8 @@
   </header>
 
   <main>
+    <div id="changes-strip" class="changes-strip" hidden></div>
+
     <div class="table-card">
       <table id="results-table">
         <thead>
@@ -457,6 +529,8 @@
   "companies_failed": 0,
   "failures": [],
   "missing_data": [],
+  "changes": [],
+  "changes_compared_to": null,
   "results": [
     {
       "ticker": "BHP.AU",
@@ -828,9 +902,11 @@
   var currentSort = { key: "risk_rating", type: "rank", rankmap: "risk", direction: "desc" };
   var expandedTickers = new Set();
   var companies = [];
+  var changesByTicker = {};
 
   var tbody = document.getElementById("results-tbody");
   var lastUpdatedEl = document.getElementById("last-updated");
+  var changesStripEl = document.getElementById("changes-strip");
 
   function formatDateOnly(dateStr) {
     if (!dateStr || typeof dateStr !== "string") return "—";
@@ -945,6 +1021,77 @@
     return span;
   }
 
+  function scrollToCompanyRow(ticker) {
+    var row = tbody.querySelector('tr[data-ticker="' + ticker + '"]');
+    if (row) {
+      row.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }
+
+  function buildChangeChip(change) {
+    var chip = document.createElement("div");
+    chip.className = "change-chip";
+    chip.tabIndex = 0;
+    chip.setAttribute("role", "button");
+
+    var name = document.createElement("span");
+    name.className = "change-name";
+    name.textContent = change.name || change.ticker;
+    chip.appendChild(name);
+
+    chip.appendChild(buildRiskBadge(change.old_rating));
+
+    var arrow = document.createElement("span");
+    arrow.className = "change-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    arrow.textContent = "→";
+    chip.appendChild(arrow);
+
+    chip.appendChild(buildRiskBadge(change.new_rating));
+
+    function expandAndScroll() {
+      expandedTickers.add(change.ticker);
+      render();
+      scrollToCompanyRow(change.ticker);
+    }
+    chip.addEventListener("click", expandAndScroll);
+    chip.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        expandAndScroll();
+      }
+    });
+
+    return chip;
+  }
+
+  function renderChangesStrip(changes, comparedToDate) {
+    changesStripEl.textContent = "";
+
+    if (!changes || !changes.length) {
+      changesStripEl.hidden = true;
+      return;
+    }
+
+    var title = document.createElement("h2");
+    title.className = "changes-strip-title";
+    title.textContent = "Recent rating changes ";
+    var since = document.createElement("span");
+    since.className = "changes-strip-since";
+    since.textContent = comparedToDate ? "since " + formatDateOnly(comparedToDate) : "";
+    title.appendChild(since);
+    changesStripEl.appendChild(title);
+
+    var list = document.createElement("div");
+    list.className = "changes-strip-list";
+    changes.forEach(function (change) {
+      list.appendChild(buildChangeChip(change));
+    });
+    changesStripEl.appendChild(list);
+
+    changesStripEl.hidden = false;
+  }
+
   function addRatioItem(dl, label, value) {
     // Wrap each dt/dd pair in its own <div> so the grid lays out whole
     // pairs as one item — dt and dd as separate direct grid children would
@@ -960,9 +1107,9 @@
     dl.appendChild(item);
   }
 
-  function addAiField(container, label, text, isAnomaly) {
+  function addAiField(container, label, text, variantClass) {
     var field = document.createElement("div");
-    field.className = "ai-field" + (isAnomaly ? " ai-field-anomaly" : "");
+    field.className = "ai-field" + (variantClass ? " " + variantClass : "");
 
     var labelEl = document.createElement("span");
     labelEl.className = "ai-label";
@@ -1080,11 +1227,18 @@
     aiTitle.textContent = "AI Risk Assessment";
     aiSection.appendChild(aiTitle);
 
+    var change = changesByTicker[company.ticker];
+    if (change) {
+      var changeText = "Risk rating was " + change.old_rating + ", now " + change.new_rating +
+        (change.compared_to_date ? " (as of " + formatDateOnly(change.compared_to_date) + ")" : "") + ".";
+      addAiField(aiSection, "Rating Change", changeText, "ai-field-change");
+    }
+
     var confidenceText = formatText(company.confidence_level);
     if (company.confidence_reason) {
       confidenceText += " — " + company.confidence_reason;
     }
-    addAiField(aiSection, "Confidence", confidenceText, hasDataAnomaly(company));
+    addAiField(aiSection, "Confidence", confidenceText, hasDataAnomaly(company) ? "ai-field-anomaly" : null);
     addAiField(aiSection, "Primary Driver", formatText(company.primary_driver));
     addAiField(aiSection, "Trend", formatText(company.trend));
     addAiField(aiSection, "Watch Trigger", formatText(company.watch_trigger));
@@ -1111,6 +1265,7 @@
     tr.className = "company-row";
     tr.tabIndex = 0;
     tr.setAttribute("role", "button");
+    tr.setAttribute("data-ticker", company.ticker);
     var isExpanded = expandedTickers.has(company.ticker);
     tr.setAttribute("aria-expanded", isExpanded ? "true" : "false");
 
@@ -1252,6 +1407,19 @@
     }
     companies = data.results;
     lastUpdatedEl.textContent = "Last updated: " + formatTimestamp(data.run_completed_at || data.run_timestamp);
+
+    var changes = Array.isArray(data.changes) ? data.changes : [];
+    changesByTicker = {};
+    changes.forEach(function (change) {
+      changesByTicker[change.ticker] = {
+        old_rating: change.old_rating,
+        new_rating: change.new_rating,
+        direction: change.direction,
+        compared_to_date: data.changes_compared_to
+      };
+    });
+    renderChangesStrip(changes, data.changes_compared_to);
+
     updateSortIndicators();
     attachSortHandlers();
     render();

@@ -68,6 +68,14 @@ RESULTS_FILE = "results.json"
 DOCS_RESULTS_FILE = "docs/results.json"  # served by the GitHub Pages front end
 LOG_FILE = "pipeline_log.txt"
 
+# Archived copies of past results.json runs, one per run date, used to detect
+# rating changes between runs (see archive_previous_results/compute_rating_changes).
+HISTORY_DIR = "history"
+
+# Same ordering as RANK_MAPS.risk in docs/index.html — used to classify a
+# rating change as a worsening or an improvement.
+RISK_RANK = {"Low": 1, "Moderate": 2, "Elevated": 3, "High": 4}
+
 
 def safe_float(value):
     """EODHD returns many numeric fields as strings (or null). Convert safely."""
@@ -367,6 +375,103 @@ def log(log_lines, message):
     log_lines.append(line)
 
 
+def archive_previous_results(results_file=RESULTS_FILE, history_dir=HISTORY_DIR):
+    """
+    Archive whatever results.json currently exists (the previous run's
+    output) into history_dir before this run overwrites it, named by that
+    previous run's own completion date (not today's date) — so re-running
+    the pipeline twice in one day doesn't create a second history entry for
+    the same underlying run.
+
+    No-op if results.json doesn't exist yet (very first run ever).
+    """
+    if not os.path.exists(results_file):
+        return None
+
+    with open(results_file) as f:
+        previous_run = json.load(f)
+
+    run_date = (previous_run.get("run_completed_at") or previous_run.get("run_timestamp") or "")[:10]
+    if not run_date:
+        return None
+
+    os.makedirs(history_dir, exist_ok=True)
+    dest_path = os.path.join(history_dir, f"{run_date}.json")
+    with open(dest_path, "w") as f:
+        json.dump(previous_run, f, indent=2)
+    return dest_path
+
+
+def most_recent_history_file(history_dir=HISTORY_DIR):
+    """Return the path to the most recently dated archived run, or None if
+    history_dir doesn't exist or has no archived runs yet."""
+    if not os.path.isdir(history_dir):
+        return None
+
+    dated_files = [
+        fname for fname in os.listdir(history_dir)
+        if fname.endswith(".json")
+    ]
+    if not dated_files:
+        return None
+
+    dated_files.sort(reverse=True)  # filenames are YYYY-MM-DD.json, so lexical sort is chronological
+    return os.path.join(history_dir, dated_files[0])
+
+
+def compute_rating_changes(new_results, history_dir=HISTORY_DIR):
+    """
+    Compare this run's results (a list of per-company dicts, as built by
+    process_company) against the most recently archived run in history_dir.
+
+    Returns (changes, compared_to_date):
+      - changes: list of {ticker, name, old_rating, new_rating, direction}
+        for every company whose risk_rating differs from the archived run.
+        Empty list if there's no prior history (first run) or no ratings
+        changed.
+      - compared_to_date: the date (YYYY-MM-DD) of the archived run compared
+        against, or None if there was no prior history to compare against.
+    """
+    latest_path = most_recent_history_file(history_dir)
+    if latest_path is None:
+        return [], None
+
+    with open(latest_path) as f:
+        previous_run = json.load(f)
+
+    compared_to_date = (previous_run.get("run_completed_at") or previous_run.get("run_timestamp") or "")[:10]
+    previous_by_ticker = {c["ticker"]: c for c in previous_run.get("results", [])}
+
+    changes = []
+    for company in new_results:
+        ticker = company["ticker"]
+        previous = previous_by_ticker.get(ticker)
+        if previous is None:
+            continue  # newly added to the watchlist since the last run — nothing to compare
+
+        old_rating = previous.get("risk_rating")
+        new_rating = company.get("risk_rating")
+        if not old_rating or not new_rating or old_rating == new_rating:
+            continue
+
+        old_rank = RISK_RANK.get(old_rating)
+        new_rank = RISK_RANK.get(new_rating)
+        if old_rank is not None and new_rank is not None:
+            direction = "worsened" if new_rank > old_rank else "improved"
+        else:
+            direction = "changed"
+
+        changes.append({
+            "ticker": ticker,
+            "name": company.get("name"),
+            "old_rating": old_rating,
+            "new_rating": new_rating,
+            "direction": direction,
+        })
+
+    return changes, compared_to_date
+
+
 def process_company(company):
     """Run the full per-company pipeline. Raises on any failure."""
     ticker = company["ticker"]
@@ -457,6 +562,12 @@ def main():
         f"({'full ASX 200' if args.full else f'test subset of {SUBSET_SIZE}'})",
     )
 
+    archived_path = archive_previous_results()
+    if archived_path:
+        log(log_lines, f"Archived previous results.json to {archived_path}")
+    else:
+        log(log_lines, "No previous results.json to archive (first run)")
+
     results = []
     failures = []
     missing_data = []
@@ -478,6 +589,12 @@ def main():
 
     run_completed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    changes, changes_compared_to = compute_rating_changes(results)
+    if changes_compared_to is None:
+        log(log_lines, "No prior history to compare against — skipping rating-change detection")
+    else:
+        log(log_lines, f"Compared against {changes_compared_to} run — {len(changes)} rating change(s) found")
+
     output = {
         "run_timestamp": run_timestamp,
         "run_completed_at": run_completed_at,
@@ -487,6 +604,8 @@ def main():
         "companies_failed": len(failures),
         "failures": failures,
         "missing_data": missing_data,
+        "changes": changes,
+        "changes_compared_to": changes_compared_to,
         "results": results,
     }
 
