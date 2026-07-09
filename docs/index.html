@@ -215,6 +215,25 @@
   .risk-unknown  { background: rgba(11,11,11,0.06); }
   .risk-unknown .badge-dot  { background: var(--text-muted); }
 
+  .risk-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .anomaly-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(var(--warning-rgb), 0.16);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
   .muted-cell {
     color: var(--text-secondary);
   }
@@ -271,6 +290,13 @@
 
   .ai-field:last-child {
     margin-bottom: 0;
+  }
+
+  .ai-field-anomaly {
+    background: rgba(var(--warning-rgb), 0.10);
+    border-left: 3px solid var(--warning);
+    border-radius: 6px;
+    padding: 10px 12px;
   }
 
   .ai-label {
@@ -876,6 +902,29 @@
     return sort.direction === "asc" ? cmp : -cmp;
   }
 
+  var ANOMALY_KEYWORDS = [
+    "data artifact", "data-quality", "data quality", "reporting artifact",
+    "reclassification", "restatement", "extraction error", "unexplained",
+    "inexplicably", "poorly explained", "data anomaly"
+  ];
+
+  function hasDataAnomaly(company) {
+    var text = [
+      company.confidence_reason,
+      company.primary_driver,
+      company.trend,
+      company.watch_trigger
+    ].filter(Boolean).join(" ").toLowerCase();
+    return ANOMALY_KEYWORDS.some(function (kw) { return text.indexOf(kw) !== -1; });
+  }
+
+  function buildAnomalyBadge() {
+    var span = document.createElement("span");
+    span.className = "anomaly-badge";
+    span.textContent = "⚠ data anomaly flagged";
+    return span;
+  }
+
   function buildRiskBadge(rating) {
     var span = document.createElement("span");
     var statusClass = RISK_STATUS_CLASS[rating] || "risk-unknown";
@@ -908,9 +957,9 @@
     dl.appendChild(item);
   }
 
-  function addAiField(container, label, text) {
+  function addAiField(container, label, text, isAnomaly) {
     var field = document.createElement("div");
-    field.className = "ai-field";
+    field.className = "ai-field" + (isAnomaly ? " ai-field-anomaly" : "");
 
     var labelEl = document.createElement("span");
     labelEl.className = "ai-label";
@@ -1032,7 +1081,7 @@
     if (company.confidence_reason) {
       confidenceText += " — " + company.confidence_reason;
     }
-    addAiField(aiSection, "Confidence", confidenceText);
+    addAiField(aiSection, "Confidence", confidenceText, hasDataAnomaly(company));
     addAiField(aiSection, "Primary Driver", formatText(company.primary_driver));
     addAiField(aiSection, "Trend", formatText(company.trend));
     addAiField(aiSection, "Watch Trigger", formatText(company.watch_trigger));
@@ -1088,7 +1137,11 @@
     tr.appendChild(sectorTd);
 
     var riskTd = document.createElement("td");
+    riskTd.className = "risk-cell";
     riskTd.appendChild(buildRiskBadge(company.risk_rating));
+    if (hasDataAnomaly(company)) {
+      riskTd.appendChild(buildAnomalyBadge());
+    }
     tr.appendChild(riskTd);
 
     var confTd = document.createElement("td");
