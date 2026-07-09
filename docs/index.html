@@ -163,41 +163,32 @@
     border-bottom: none;
   }
 
-  .company-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
+  .chevron {
+    float: left;
+    width: 14px;
+    color: var(--text-muted);
+    font-size: 11px;
   }
 
   .company-text {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 2px;
-    min-width: 0;
+    display: block;
+    overflow: hidden;
   }
 
   .company-name {
     display: block;
+    font-weight: 600;
     overflow-wrap: break-word;
   }
 
   .ticker-code {
     display: block;
+    margin-top: 2px;
     font-weight: 400;
     font-size: 12px;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
     overflow-wrap: break-word;
-  }
-
-  .chevron {
-    display: inline-block;
-    flex-shrink: 0;
-    width: 10px;
-    color: var(--text-muted);
-    font-size: 11px;
   }
 
   .risk-badge {
@@ -231,15 +222,10 @@
   .risk-unknown  { background: rgba(11,11,11,0.06); }
   .risk-unknown .badge-dot  { background: var(--text-muted); }
 
-  .risk-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
   .anomaly-badge {
-    display: inline-flex;
+    display: flex;
+    width: fit-content;
+    margin-top: 6px;
     align-items: center;
     padding: 2px 8px;
     border-radius: 999px;
@@ -384,7 +370,6 @@
 
     .company-name { font-size: 12.5px; }
     .ticker-code { font-size: 11px; }
-    .company-text { flex: 1 1 auto; min-width: 0; gap: 1px; }
 
     /* True vertical stack on a phone rather than auto-fit's 2-column guess. */
     .ratio-grid { grid-template-columns: 1fr; }
@@ -1130,13 +1115,11 @@
     tr.setAttribute("aria-expanded", isExpanded ? "true" : "false");
 
     var nameTd = document.createElement("td");
-    var nameCell = document.createElement("span");
-    nameCell.className = "company-cell";
     var chevron = document.createElement("span");
     chevron.className = "chevron";
     chevron.setAttribute("aria-hidden", "true");
     chevron.textContent = isExpanded ? "▾" : "▸";
-    nameCell.appendChild(chevron);
+    nameTd.appendChild(chevron);
     var companyText = document.createElement("span");
     companyText.className = "company-text";
     var nameText = document.createElement("span");
@@ -1149,8 +1132,7 @@
       tickerCode.textContent = formatTickerCode(company.ticker);
       companyText.appendChild(tickerCode);
     }
-    nameCell.appendChild(companyText);
-    nameTd.appendChild(nameCell);
+    nameTd.appendChild(companyText);
     tr.appendChild(nameTd);
 
     var sectorTd = document.createElement("td");
@@ -1159,7 +1141,6 @@
     tr.appendChild(sectorTd);
 
     var riskTd = document.createElement("td");
-    riskTd.className = "risk-cell";
     riskTd.appendChild(buildRiskBadge(company.risk_rating));
     if (hasDataAnomaly(company)) {
       riskTd.appendChild(buildAnomalyBadge());
