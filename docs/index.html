@@ -1153,6 +1153,10 @@
     return "https://news.google.com/search?q=" + encodeURIComponent(name);
   }
 
+  function formatGoogleFinanceUrl(ticker) {
+    return "https://www.google.com/finance/quote/" + formatTickerCode(ticker) + ":ASX";
+  }
+
   function buildNewsSection(company) {
     var section = document.createElement("div");
     section.className = "detail-section";
@@ -1179,6 +1183,13 @@
     newsLink.rel = "noopener noreferrer";
     newsLink.textContent = "Google News Search ↗";
     list.appendChild(newsLink);
+
+    var priceLink = document.createElement("a");
+    priceLink.href = formatGoogleFinanceUrl(company.ticker);
+    priceLink.target = "_blank";
+    priceLink.rel = "noopener noreferrer";
+    priceLink.textContent = "Price Chart ↗";
+    list.appendChild(priceLink);
 
     section.appendChild(list);
     return section;
