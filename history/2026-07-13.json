@@ -1,0 +1,74 @@
+{
+  "run_timestamp": "2026-07-12T21:14:41Z",
+  "run_completed_at": "2026-07-13T01:58:54Z",
+  "subset": "test_subset_15",
+  "companies_requested": 15,
+  "companies_succeeded": 0,
+  "companies_failed": 15,
+  "failures": [
+    {
+      "ticker": "BHP.AU",
+      "error": "HTTPSConnectionPool(host='eodhd.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "ticker": "CBA.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "WBC.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "NAB.AU",
+      "error": "HTTPSConnectionPool(host='eodhd.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "ticker": "ANZ.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "WES.AU",
+      "error": "('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))"
+    },
+    {
+      "ticker": "MQG.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "RIO.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "GMG.AU",
+      "error": "HTTPSConnectionPool(host='eodhd.com', port=443): Read timed out. (read timeout=30)"
+    },
+    {
+      "ticker": "TLS.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "WDS.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "CSL.AU",
+      "error": "HTTPSConnectionPool(host='eodhd.com', port=443): Read timed out."
+    },
+    {
+      "ticker": "TCL.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "WOW.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    },
+    {
+      "ticker": "QBE.AU",
+      "error": "Claude API returned status 400: {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.\"},\"request_i"
+    }
+  ],
+  "missing_data": [],
+  "changes": [],
+  "changes_compared_to": "2026-07-07",
+  "results": []
+}
