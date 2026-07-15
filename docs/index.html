@@ -157,7 +157,14 @@
     width: 100%;
     border-collapse: collapse;
     min-width: 640px;
+    table-layout: fixed;
   }
+
+  .col-company    { width: 32%; }
+  .col-sector     { width: 20%; }
+  .col-risk       { width: 20%; }
+  .col-confidence { width: 14%; }
+  .col-zscore     { width: 14%; }
 
   thead th {
     position: sticky;
@@ -437,6 +444,9 @@
     thead th:nth-child(5), tbody td:nth-child(5) {
       display: none;
     }
+    .col-sector, .col-confidence, .col-zscore { display: none; }
+    .col-company { width: 65%; }
+    .col-risk { width: 35%; }
 
     .company-name { font-size: 12.5px; }
     .ticker-code { font-size: 11px; }
@@ -468,6 +478,13 @@
 
     <div class="table-card">
       <table id="results-table">
+        <colgroup>
+          <col class="col-company">
+          <col class="col-sector">
+          <col class="col-risk">
+          <col class="col-confidence">
+          <col class="col-zscore">
+        </colgroup>
         <thead>
           <tr>
             <th aria-sort="none">
