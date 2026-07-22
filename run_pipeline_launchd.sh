@@ -18,4 +18,4 @@ export ANTHROPIC_API_KEY
 ANTHROPIC_API_KEY="$(security find-generic-password -a "$USER" -s "asx-pipeline-anthropic-api-key" -w)"
 
 # Test subset for now — switch to `--full` here once ready to scan all 201.
-exec /usr/local/bin/python3 run_pipeline.py
+exec /usr/local/bin/python3 run_pipeline.py --full
