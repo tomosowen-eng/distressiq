@@ -118,22 +118,23 @@
   }
 
   .changes-strip-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 10px;
   }
 
   .change-chip {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: 8px 14px;
     border: 1px solid var(--gridline);
     border-radius: 8px;
     background: var(--page-plane);
     font-size: 13px;
     cursor: pointer;
-    max-width: 100%;
+    width: 100%;
     min-width: 0;
   }
 
