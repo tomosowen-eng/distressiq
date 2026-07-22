@@ -133,6 +133,8 @@
     background: var(--page-plane);
     font-size: 13px;
     cursor: pointer;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .change-chip:hover,
@@ -147,6 +149,10 @@
 
   .change-name {
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .change-arrow {
@@ -274,6 +280,13 @@
     white-space: nowrap;
     min-width: 0;
     max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .risk-badge span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .badge-dot {

@@ -329,8 +329,10 @@ def call_claude(prompt):
 
 
 HEADERS_IN_ORDER = ["RISK RATING", "CONFIDENCE", "PRIMARY DRIVER", "TREND", "WATCH TRIGGER"]
+_HEADERS_ALT = "|".join(HEADERS_IN_ORDER)
 _HEADER_PATTERN = re.compile(
-    r"(" + "|".join(HEADERS_IN_ORDER) + r"):\s*(.*?)(?=\n(?:" + "|".join(HEADERS_IN_ORDER) + r"):|\Z)",
+    r"\*{0,2}(" + _HEADERS_ALT + r")\*{0,2}:\*{0,2}\s*(.*?)"
+    r"(?=\n+\*{0,2}(?:" + _HEADERS_ALT + r")\*{0,2}:|\Z)",
     re.DOTALL,
 )
 
